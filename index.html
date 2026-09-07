@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专升本高频500词 · 互动单词本</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    min-height: 100vh;
+    color: #2c3e50;
+  }
+  .header {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(231,76,60,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 13px; opacity: 0.9; }
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .stat-item strong { font-size: 16px; margin-right: 4px; }
+  .controls {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+  .search-box {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 14px 20px 14px 48px;
+    border: 2px solid #e0e6ed;
+    border-radius: 14px;
+    font-size: 15px;
+    background: white;
+    transition: all 0.3s;
+    outline: none;
+  }
+  .search-box input:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 4px rgba(231,76,60,0.1);
+  }
+  .search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+  }
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    border: 2px solid #e0e6ed;
+    background: white;
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #5a6c7d;
+    font-weight: 500;
+  }
+  .filter-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+  .filter-btn.active {
+    background: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+  }
+  .view-toggle {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+  .view-btn {
+    padding: 8px 14px;
+    border: 2px solid #e0e6ed;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .view-btn.active { background: #2c3e50; color: white; border-color: #2c3e50; }
+  .word-list {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+  }
+  .word-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: all 0.25s;
+    border-left: 4px solid #e0e6ed;
+    position: relative;
+  }
+  .word-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+  .word-card.high-freq { border-left-color: #e74c3c; }
+  .word-card.mid-freq { border-left-color: #f39c12; }
+  .word-card.low-freq { border-left-color: #3498db; }
+  .word-card.mastered { opacity: 0.55; }
+  .word-card.mastered .word-text { text-decoration: line-through; }
+  .word-num {
+    font-size: 13px;
+    color: #95a5a6;
+    font-weight: 600;
+    min-width: 36px;
+    text-align: center;
+  }
+  .word-freq {
+    background: #fef0ef;
+    color: #e74c3c;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 52px;
+    text-align: center;
+  }
+  .word-main {
+    flex: 1;
+    cursor: pointer;
+  }
+  .word-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+    letter-spacing: 0.3px;
+    transition: color 0.2s;
+  }
+  .word-main:hover .word-text { color: #e74c3c; }
+  .word-meaning {
+    font-size: 14px;
+    color: #5a6c7d;
+    margin-top: 4px;
+  }
+  .word-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .action-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: #f5f7fa;
+  }
+  .action-btn:hover { background: #e8ecf1; transform: scale(1.1); }
+  .action-btn.speak-btn { background: #eaf4fd; }
+  .action-btn.speak-btn:hover { background: #d4e9fc; }
+  .action-btn.speak-btn.playing { background: #3498db; animation: pulse 1s infinite; }
+  .action-btn.fav-btn.active { background: #fef0ef; }
+  .action-btn.master-btn.active { background: #e8f8f0; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .word-list.card-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .card-view .word-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 20px;
+    margin-bottom: 0;
+  }
+  .card-view .word-num { position: absolute; top: 12px; right: 16px; }
+  .card-view .word-freq { position: absolute; top: 12px; left: 16px; }
+  .card-view .word-main { margin-top: 24px; width: 100%; }
+  .card-view .word-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #95a5a6;
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: #95a5a6;
+    font-size: 12px;
+  }
+  .study-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .study-overlay.show { display: flex; }
+  .study-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  .study-card .close-btn {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 36px; height: 36px;
+    border: none; background: #f5f7fa;
+    border-radius: 50%; cursor: pointer;
+    font-size: 18px;
+  }
+  .study-word {
+    font-size: 42px;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .study-word:hover { color: #e74c3c; }
+  .study-phonetic { font-size: 16px; color: #7f8c8d; font-style: italic; margin-bottom: 24px; }
+  .study-meaning {
+    font-size: 20px;
+    color: #5a6c7d;
+    padding: 20px;
+    background: #f8f9fb;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .study-meaning.show { display: block; }
+  .study-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .study-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .study-btn.primary { background: #e74c3c; color: white; }
+  .study-btn.primary:hover { background: #c0392b; }
+  .study-btn.secondary { background: #f0f3f7; color: #5a6c7d; }
+  .study-btn.secondary:hover { background: #e4e9f2; }
+  .study-progress {
+    font-size: 13px;
+    color: #95a5a6;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) {
+    .word-card { padding: 12px 14px; gap: 10px; }
+    .word-text { font-size: 17px; }
+    .word-freq { min-width: 44px; font-size: 11px; padding: 3px 8px; }
+    .word-num { min-width: 28px; font-size: 12px; }
+    .action-btn { width: 34px; height: 34px; font-size: 14px; }
+    .study-word { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📚 专升本高频500词 · 互动单词本</h1>
+  <p>点击单词即可发音 · 支持搜索 / 收藏 / 已掌握标记 / 学习模式</p>
+  <div class="stats-bar">
+    <div class="stat-item"><strong id="totalCount">498</strong>总词数</div>
+    <div class="stat-item"><strong id="favCount">0</strong>已收藏</div>
+    <div class="stat-item"><strong id="masteredCount">0</strong>已掌握</div>
+    <div class="stat-item"><strong id="shownCount">0</strong>当前显示</div>
+  </div>
+</div>
+<div class="controls">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索单词或中文释义..." />
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="high">高频 (≥20次)</button>
+    <button class="filter-btn" data-filter="mid">中频 (10-19次)</button>
+    <button class="filter-btn" data-filter="low">低频 (&lt;10次)</button>
+    <button class="filter-btn" data-filter="fav">⭐ 收藏</button>
+    <button class="filter-btn" data-filter="unmastered">未掌握</button>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="list">📋 列表</button>
+      <button class="view-btn" data-view="card">🃏 卡片</button>
+    </div>
+  </div>
+  <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="filter-btn" id="sortFreq" style="border-color:#e74c3c;color:#e74c3c;">🔻 按频次排序</button>
+    <button class="filter-btn" id="sortAlpha">🔤 按字母排序</button>
+    <button class="filter-btn" id="studyModeBtn" style="background:#2c3e50;color:white;border-color:#2c3e50;">🎯 开始学习模式</button>
+    <button class="filter-btn" id="resetBtn" style="margin-left:auto;color:#95a5a6;">🔄 重置进度</button>
+  </div>
+</div>
+<div class="word-list" id="wordList"></div>
+<div class="footer">专升本高频500词 · 老秦专升本整理 · 点击单词或🔊按钮发音</div>
+<div class="study-overlay" id="studyOverlay">
+  <div class="study-card">
+    <button class="close-btn" onclick="closeStudy()">✕</button>
+    <div class="study-progress" id="studyProgress">1 / 498</div>
+    <div class="study-word" id="studyWord" onclick="speakWord(this.textContent)">word</div>
+    <div class="study-phonetic" id="studyPhonetic"></div>
+    <div class="study-meaning" id="studyMeaning"></div>
+    <div class="study-buttons">
+      <button class="study-btn secondary" onclick="toggleMeaning()">👁 显示释义</button>
+      <button class="study-btn primary" onclick="studySpeak()">🔊 发音</button>
+      <button class="study-btn secondary" onclick="studyPrev()">⬅ 上一个</button>
+      <button class="study-btn primary" onclick="studyNext()">下一个 ➡</button>
+      <button class="study-btn secondary" onclick="studyMaster()">✅ 标记掌握</button>
+    </div>
+  </div>
+</div>
+<script>
+const words = [
+  {id:1,freq:56,word:"growth",pos:"n.",meaning:"增长"},
+  {id:2,freq:51,word:"influence",pos:"n.",meaning:"影响"},
+  {id:3,freq:50,word:"stress",pos:"n.",meaning:"压力"},
+  {id:4,freq:47,word:"effect",pos:"n.",meaning:"影响"},
+  {id:5,freq:46,word:"digital",pos:"adj.",meaning:"数字的"},
+  {id:6,freq:45,word:"value",pos:"n.",meaning:"价值"},
+  {id:7,freq:45,word:"community",pos:"n.",meaning:"社区"},
+  {id:8,freq:42,word:"result in",pos:"v.",meaning:"导致"},
+  {id:9,freq:42,word:"nature",pos:"n.",meaning:"自然"},
+  {id:10,freq:40,word:"suggest",pos:"v.",meaning:"暗示"},
+  {id:11,freq:36,word:"attitude",pos:"n.",meaning:"态度"},
+  {id:12,freq:32,word:"address",pos:"n.",meaning:"地址"},
+  {id:13,freq:31,word:"comment",pos:"n.",meaning:"评论"},
+  {id:14,freq:31,word:"available",pos:"adj.",meaning:"可获得"},
+  {id:15,freq:31,word:"corporate",pos:"adj.",meaning:"公司的"},
+  {id:16,freq:30,word:"benefit",pos:"n.",meaning:"利益"},
+  {id:17,freq:29,word:"practice",pos:"v.",meaning:"练习"},
+  {id:18,freq:28,word:"approach",pos:"v.",meaning:"走进"},
+  {id:19,freq:27,word:"recommend",pos:"n.",meaning:"推荐"},
+  {id:20,freq:27,word:"measure",pos:"n.",meaning:"测量"},
+  {id:21,freq:25,word:"experience",pos:"n.",meaning:"经验经历"},
+  {id:22,freq:24,word:"intend",pos:"v.",meaning:"打算"},
+  {id:23,freq:24,word:"balance",pos:"n.",meaning:"平衡"},
+  {id:24,freq:23,word:"suitable",pos:"adj.",meaning:"适当的"},
+  {id:25,freq:23,word:"concern",pos:"v.",meaning:"影响"},
+  {id:26,freq:23,word:"emotional",pos:"adj.",meaning:"情绪的"},
+  {id:27,freq:23,word:"insurance",pos:"n.",meaning:"保险"},
+  {id:28,freq:21,word:"ambition",pos:"n.",meaning:"野心"},
+  {id:29,freq:21,word:"initiative",pos:"v./n.",meaning:"倡议 / 主动"},
+  {id:30,freq:21,word:"analysis",pos:"n.",meaning:"分析"},
+  {id:31,freq:21,word:"degree",pos:"n.",meaning:"程度，学位"},
+  {id:32,freq:20,word:"argument",pos:"n.",meaning:"论点"},
+  {id:33,freq:20,word:"department",pos:"n.",meaning:"部门"},
+  {id:34,freq:20,word:"employment",pos:"n.",meaning:"雇用"},
+  {id:35,freq:20,word:"manufacture",pos:"n.",meaning:"生产，制造"},
+  {id:36,freq:20,word:"challenge",pos:"n.",meaning:"挑战"},
+  {id:37,freq:20,word:"range",pos:"n./v.",meaning:"范围 / 变化"},
+  {id:38,freq:20,word:"unique",pos:"adj.",meaning:"独一无二的"},
+  {id:39,freq:19,word:"cause",pos:"v.",meaning:"引起"},
+  {id:40,freq:19,word:"consequence",pos:"n.",meaning:"结果"},
+  {id:41,freq:19,word:"scale",pos:"n.",meaning:"规模"},
+  {id:42,freq:19,word:"positive",pos:"adj.",meaning:"积极的"},
+  {id:43,freq:19,word:"subject",pos:"n.",meaning:"主题，实验受体"},
+  {id:44,freq:19,word:"figure",pos:"n.",meaning:"人物"},
+  {id:45,freq:19,word:"critical",pos:"adj.",meaning:"关键的，批判的"},
+  {id:46,freq:19,word:"genetic",pos:"adj.",meaning:"基因的"},
+  {id:47,freq:18,word:"presence",pos:"n.",meaning:"存在"},
+  {id:48,freq:18,word:"advantage",pos:"n.",meaning:"优势"},
+  {id:49,freq:18,word:"board",pos:"n.",meaning:"董事会"},
+  {id:50,freq:18,word:"involve",pos:"v.",meaning:"包含"},
+  {id:51,freq:18,word:"favor",pos:"v.",meaning:"较喜欢；有利于"},
+  {id:52,freq:18,word:"considerable",pos:"adj.",meaning:"相当多的"},
+  {id:53,freq:17,word:"standard",pos:"n.",meaning:"标准"},
+  {id:54,freq:17,word:"stock",pos:"n.",meaning:"股份"},
+  {id:55,freq:17,word:"term",pos:"n.",meaning:"学期；条款"},
+  {id:56,freq:17,word:"executive",pos:"n.",meaning:"主管"},
+  {id:57,freq:17,word:"privacy",pos:"n.",meaning:"隐私"},
+  {id:58,freq:17,word:"efficiency",pos:"n.",meaning:"效率"},
+  {id:59,freq:17,word:"inevitable",pos:"adj.",meaning:"不可避免的"},
+  {id:60,freq:17,word:"revenue",pos:"n.",meaning:"税收收入"},
+  {id:62,freq:16,word:"threat",pos:"n.",meaning:"威胁"},
+  {id:63,freq:16,word:"communication",pos:"n.",meaning:"通讯"},
+  {id:64,freq:16,word:"stand",pos:"v.",meaning:"站立；位于"},
+  {id:65,freq:16,word:"religious",pos:"adj.",meaning:"宗教的"},
+  {id:66,freq:16,word:"shift",pos:"v.",meaning:"转移"},
+  {id:67,freq:16,word:"phenomenon",pos:"n.",meaning:"现象"},
+  {id:68,freq:16,word:"giant",pos:"n.",meaning:"商业巨头"},
+  {id:69,freq:16,word:"agency",pos:"n.",meaning:"代理"},
+  {id:70,freq:16,word:"humanity",pos:"n.",meaning:"人类"},
+  {id:71,freq:16,word:"classical",pos:"adj.",meaning:"古典经典的"},
+  {id:72,freq:16,word:"popularity",pos:"n.",meaning:"流行度"},
+  {id:73,freq:16,word:"senior",pos:"n.",meaning:"高级的"},
+  {id:74,freq:16,word:"colleague",pos:"n.",meaning:"同事"},
+  {id:75,freq:16,word:"promote",pos:"v.",meaning:"提高"},
+  {id:76,freq:16,word:"former",pos:"adj./n.",meaning:"前面的 / 前者"},
+  {id:77,freq:15,word:"appeal",pos:"n.",meaning:"呼吁"},
+  {id:78,freq:15,word:"infrastructure",pos:"n.",meaning:"基础设施"},
+  {id:79,freq:15,word:"respect",pos:"n.",meaning:"尊敬"},
+  {id:80,freq:15,word:"cover",pos:"v.",meaning:"包含"},
+  {id:81,freq:15,word:"fundamental",pos:"adj.",meaning:"基本的"},
+  {id:82,freq:15,word:"commission",pos:"n.",meaning:"委员会"},
+  {id:83,freq:15,word:"background",pos:"n.",meaning:"背景"},
+  {id:84,freq:15,word:"climate",pos:"n.",meaning:"气候"},
+  {id:85,freq:15,word:"failure",pos:"n.",meaning:"失败"},
+  {id:86,freq:15,word:"gamble",pos:"v.",meaning:"赌博"},
+  {id:87,freq:15,word:"sensitive",pos:"adj.",meaning:"敏感的"},
+  {id:88,freq:15,word:"optimistic",pos:"adj.",meaning:"乐观的"},
+  {id:89,freq:14,word:"previous",pos:"adj.",meaning:"以前的"},
+  {id:90,freq:14,word:"campaign",pos:"n.",meaning:"运动"},
+  {id:91,freq:14,word:"amount",pos:"n.",meaning:"数量"},
+  {id:92,freq:14,word:"administration",pos:"n.",meaning:"管理"},
+  {id:93,freq:14,word:"conservative",pos:"adj.",meaning:"保守的"},
+  {id:94,freq:14,word:"confidence",pos:"n.",meaning:"信心"},
+  {id:95,freq:14,word:"automation",pos:"n.",meaning:"自动化"},
+  {id:96,freq:14,word:"rather",pos:"adv.",meaning:"更加"},
+  {id:97,freq:14,word:"feature",pos:"v./n.",meaning:"以…为特点 / 特点"},
+  {id:98,freq:14,word:"context",pos:"n.",meaning:"背景"},
+  {id:99,freq:14,word:"principle",pos:"n.",meaning:"原则"},
+  {id:100,freq:13,word:"prove",pos:"v.",meaning:"证明是"},
+  {id:101,freq:13,word:"psychological",pos:"adj.",meaning:"心理的"},
+  {id:102,freq:13,word:"institution",pos:"n.",meaning:"制度"},
+  {id:103,freq:13,word:"curiosity",pos:"n.",meaning:"好奇"},
+  {id:104,freq:13,word:"instance",pos:"n.",meaning:"实例"},
+  {id:105,freq:13,word:"literature",pos:"n.",meaning:"文学"},
+  {id:106,freq:13,word:"ethical",pos:"adj.",meaning:"伦理的"},
+  {id:107,freq:13,word:"force",pos:"v.",meaning:"促使"},
+  {id:108,freq:13,word:"claim",pos:"v.",meaning:"宣称"},
+  {id:109,freq:13,word:"crucial",pos:"adj.",meaning:"重要的"},
+  {id:110,freq:13,word:"regard",pos:"v.",meaning:"把…看作"},
+  {id:111,freq:13,word:"logical",pos:"adj.",meaning:"合逻辑的，合理的"},
+  {id:112,freq:13,word:"frequently",pos:"adv.",meaning:"频繁地"},
+  {id:113,freq:13,word:"efficient",pos:"adj.",meaning:"有效的"},
+  {id:114,freq:13,word:"function",pos:"n.",meaning:"功能"},
+  {id:115,freq:13,word:"postal",pos:"adj.",meaning:"邮政的"},
+  {id:116,freq:13,word:"appropriate",pos:"adj.",meaning:"恰当的"},
+  {id:117,freq:13,word:"carbon",pos:"n.",meaning:"碳"},
+  {id:118,freq:12,word:"turn",pos:"v.",meaning:"变"},
+  {id:119,freq:12,word:"reliable",pos:"adj.",meaning:"可靠的"},
+  {id:120,freq:12,word:"revival",pos:"n.",meaning:"复兴"},
+  {id:121,freq:12,word:"commercial",pos:"adj.",meaning:"商业的"},
+  {id:122,freq:12,word:"content",pos:"n.",meaning:"内容"},
+  {id:123,freq:12,word:"tolerance",pos:"n.",meaning:"宽容"},
+  {id:124,freq:12,word:"advance",pos:"n./v.",meaning:"进步 / 发展"},
+  {id:125,freq:12,word:"trial",pos:"n.",meaning:"试验，审判"},
+  {id:126,freq:12,word:"voluntary",pos:"adj.",meaning:"自愿的"},
+  {id:127,freq:12,word:"creativity",pos:"n.",meaning:"创造力"},
+  {id:128,freq:12,word:"aspect",pos:"n.",meaning:"方面"},
+  {id:129,freq:12,word:"slavery",pos:"n.",meaning:"奴役"},
+  {id:130,freq:12,word:"advocate",pos:"n./v.",meaning:"支持者 / 支持"},
+  {id:131,freq:12,word:"retailer",pos:"n.",meaning:"零售商"},
+  {id:132,freq:12,word:"latest",pos:"adj.",meaning:"最新的"},
+  {id:133,freq:12,word:"reflect",pos:"v.",meaning:"反映出"},
+  {id:134,freq:11,word:"radical",pos:"adj.",meaning:"激进的"},
+  {id:135,freq:11,word:"panel",pos:"n.",meaning:"专家组"},
+  {id:136,freq:11,word:"widespread",pos:"adj.",meaning:"普遍的"},
+  {id:137,freq:11,word:"sympathy",pos:"n.",meaning:"同情"},
+  {id:138,freq:11,word:"identify",pos:"v.",meaning:"确定；鉴定"},
+  {id:139,freq:11,word:"variety",pos:"n.",meaning:"多样"},
+  {id:140,freq:11,word:"objective",pos:"n./adj.",meaning:"目的 / 客观的"},
+  {id:141,freq:11,word:"desire",pos:"n.",meaning:"欲望"},
+  {id:142,freq:11,word:"illustrate",pos:"v.",meaning:"阐明"},
+  {id:143,freq:11,word:"dominant",pos:"adj.",meaning:"显著的，占优的"},
+  {id:144,freq:11,word:"sufficient",pos:"adj.",meaning:"足够的，充足的"},
+  {id:145,freq:11,word:"immediate",pos:"adj.",meaning:"立即的"},
+  {id:146,freq:11,word:"enforcement",pos:"n.",meaning:"执行"},
+  {id:147,freq:11,word:"inflation",pos:"n.",meaning:"膨胀"},
+  {id:148,freq:11,word:"emphasis",pos:"n.",meaning:"强调，重要性"},
+  {id:149,freq:11,word:"rural",pos:"adj.",meaning:"农村的"},
+  {id:150,freq:11,word:"struggle",pos:"v.",meaning:"奋斗"},
+  {id:151,freq:11,word:"construction",pos:"n.",meaning:"建筑，建造"},
+  {id:152,freq:11,word:"mechanic",pos:"adj.",meaning:"机械的"},
+  {id:153,freq:11,word:"advanced",pos:"adj.",meaning:"先进的"},
+  {id:154,freq:11,word:"native",pos:"adj.",meaning:"本土的"},
+  {id:155,freq:11,word:"express",pos:"v.",meaning:"表达"},
+  {id:156,freq:11,word:"technical",pos:"adj.",meaning:"科技的"},
+  {id:157,freq:11,word:"marriage",pos:"n.",meaning:"婚姻"},
+  {id:158,freq:11,word:"manufacturer",pos:"n.",meaning:"制造商"},
+  {id:159,freq:10,word:"indicate",pos:"v.",meaning:"表明"},
+  {id:160,freq:10,word:"characterized",pos:"adj.",meaning:"以…为特点的"},
+  {id:161,freq:10,word:"eliminate",pos:"v.",meaning:"消除"},
+  {id:162,freq:10,word:"entire",pos:"adj.",meaning:"全部的"},
+  {id:163,freq:10,word:"judge",pos:"n./v.",meaning:"法官 / 裁定"},
+  {id:164,freq:10,word:"precisely",pos:"adv.",meaning:"精确地"},
+  {id:165,freq:10,word:"tendency",pos:"n.",meaning:"倾向，趋势"},
+  {id:166,freq:10,word:"apparently",pos:"adv.",meaning:"显然地"},
+  {id:167,freq:10,word:"opposite",pos:"adj.",meaning:"相反的"},
+  {id:168,freq:10,word:"internal",pos:"adj.",meaning:"内部的"},
+  {id:169,freq:10,word:"random",pos:"adj.",meaning:"随机的"},
+  {id:170,freq:10,word:"constant",pos:"adj.",meaning:"不变的"},
+  {id:171,freq:10,word:"obviously",pos:"adv.",meaning:"明显地"},
+  {id:172,freq:10,word:"separate",pos:"adj.",meaning:"分开的"},
+  {id:173,freq:10,word:"blame",pos:"v.",meaning:"责备"},
+  {id:174,freq:10,word:"authority",pos:"n.",meaning:"权威，政府"},
+  {id:175,freq:10,word:"psychology",pos:"n.",meaning:"心理学"},
+  {id:176,freq:10,word:"religion",pos:"n.",meaning:"宗教"},
+  {id:177,freq:10,word:"reasonable",pos:"adj.",meaning:"合理的"},
+  {id:178,freq:10,word:"vehicle",pos:"n.",meaning:"交通工具"},
+  {id:179,freq:10,word:"tolerant",pos:"adj.",meaning:"宽容的"},
+  {id:180,freq:10,word:"democratic",pos:"adj.",meaning:"民主的"},
+  {id:181,freq:10,word:"statistical",pos:"adj.",meaning:"统计的"},
+  {id:182,freq:10,word:"possibility",pos:"n.",meaning:"可能性"},
+  {id:183,freq:10,word:"suicide",pos:"n.",meaning:"自杀"},
+  {id:184,freq:10,word:"boost",pos:"v.",meaning:"促进"},
+  {id:185,freq:10,word:"tax",pos:"n.",meaning:"税金"},
+  {id:186,freq:10,word:"strategy",pos:"n.",meaning:"战略"},
+  {id:187,freq:10,word:"routine",pos:"n.",meaning:"常规"},
+  {id:188,freq:10,word:"enormous",pos:"adj.",meaning:"巨大的"},
+  {id:189,freq:10,word:"lasting",pos:"adj.",meaning:"持续"},
+  {id:190,freq:10,word:"reward",pos:"v./n.",meaning:"奖励"},
+  {id:191,freq:10,word:"infer",pos:"v.",meaning:"推理"},
+  {id:192,freq:10,word:"ahead",pos:"adv.",meaning:"向前"},
+  {id:193,freq:10,word:"attempt",pos:"v./n.",meaning:"尝试"},
+  {id:194,freq:9,word:"contrary",pos:"adj.",meaning:"相反的"},
+  {id:195,freq:9,word:"property",pos:"n.",meaning:"财产"},
+  {id:196,freq:9,word:"relevant",pos:"adj.",meaning:"相关的"},
+  {id:197,freq:9,word:"artificial",pos:"adj.",meaning:"人造的"},
+  {id:198,freq:9,word:"permanent",pos:"adj.",meaning:"永久的"},
+  {id:199,freq:9,word:"justified",pos:"adj.",meaning:"正当理由的"},
+  {id:200,freq:9,word:"collective",pos:"adj.",meaning:"集体"},
+  {id:201,freq:9,word:"innovation",pos:"n.",meaning:"创新"},
+  {id:202,freq:9,word:"entrepreneur",pos:"n.",meaning:"企业家"},
+  {id:203,freq:9,word:"fiction",pos:"n.",meaning:"小说，虚构"},
+  {id:204,freq:9,word:"distinction",pos:"n.",meaning:"区别"},
+  {id:205,freq:9,word:"urban",pos:"adj.",meaning:"城市的"},
+  {id:206,freq:9,word:"virtual",pos:"adj.",meaning:"虚拟的"},
+  {id:207,freq:9,word:"differ",pos:"v.",meaning:"相异"},
+  {id:208,freq:9,word:"strengthen",pos:"v.",meaning:"强化"},
+  {id:209,freq:9,word:"spouse",pos:"n.",meaning:"配偶 另一半"},
+  {id:210,freq:9,word:"release",pos:"v./n.",meaning:"释放"},
+  {id:211,freq:9,word:"neglect",pos:"v.",meaning:"忽视"},
+  {id:212,freq:9,word:"furthermore",pos:"adv.",meaning:"此外"},
+  {id:213,freq:9,word:"determine",pos:"v.",meaning:"决定"},
+  {id:214,freq:9,word:"approval",pos:"n.",meaning:"批准，支持"},
+  {id:215,freq:9,word:"discipline",pos:"n.",meaning:"纪律，学科"},
+  {id:216,freq:9,word:"origin",pos:"n.",meaning:"源头"},
+  {id:217,freq:9,word:"debate",pos:"n.",meaning:"争论"},
+  {id:218,freq:8,word:"influential",pos:"adj.",meaning:"有影响的"},
+  {id:219,freq:8,word:"dynamic",pos:"adj.",meaning:"动态的"},
+  {id:220,freq:8,word:"enhance",pos:"v.",meaning:"提高"},
+  {id:221,freq:8,word:"skeptical",pos:"adj.",meaning:"怀疑的"},
+  {id:222,freq:8,word:"commerce",pos:"n.",meaning:"贸易"},
+  {id:223,freq:8,word:"reveal",pos:"v.",meaning:"显示"},
+  {id:224,freq:8,word:"merely",pos:"adv.",meaning:"仅仅"},
+  {id:225,freq:8,word:"modest",pos:"adj.",meaning:"谦虚的"},
+  {id:226,freq:8,word:"conventional",pos:"adj.",meaning:"符合习俗的"},
+  {id:227,freq:8,word:"assumption",pos:"n.",meaning:"假定"},
+  {id:228,freq:8,word:"external",pos:"adj.",meaning:"外部的"},
+  {id:229,freq:8,word:"emphasize",pos:"v.",meaning:"强调"},
+  {id:230,freq:8,word:"desirable",pos:"adj.",meaning:"渴望的"},
+  {id:231,freq:8,word:"application",pos:"n.",meaning:"应用"},
+  {id:232,freq:8,word:"prior",pos:"adj.",meaning:"先前的"},
+  {id:233,freq:8,word:"civil",pos:"adj.",meaning:"公民的"},
+  {id:234,freq:8,word:"institute",pos:"n.",meaning:"机构，制度"},
+  {id:235,freq:8,word:"indifference",pos:"n.",meaning:"漠不关心"},
+  {id:236,freq:8,word:"extreme",pos:"adj.",meaning:"极端的"},
+  {id:237,freq:8,word:"identified",pos:"adj.",meaning:"被识别的"},
+  {id:238,freq:8,word:"massive",pos:"adj.",meaning:"大量的"},
+  {id:239,freq:8,word:"hence",pos:"adv.",meaning:"因此；今后"},
+  {id:240,freq:8,word:"perspective",pos:"n.",meaning:"观点"},
+  {id:241,freq:8,word:"legitimate",pos:"adj.",meaning:"合法的"},
+  {id:242,freq:8,word:"prosperity",pos:"n.",meaning:"繁荣，成功"},
+  {id:243,freq:8,word:"crude",pos:"adj.",meaning:"粗糙的"},
+  {id:244,freq:8,word:"restriction",pos:"n.",meaning:"限制"},
+  {id:245,freq:8,word:"passion",pos:"n.",meaning:"激情"},
+  {id:246,freq:8,word:"rigid",pos:"adj.",meaning:"严格的"},
+  {id:247,freq:8,word:"mechanism",pos:"n.",meaning:"机制，构造"},
+  {id:248,freq:8,word:"counterpart",pos:"n.",meaning:"对应物"},
+  {id:249,freq:8,word:"divorce",pos:"n.",meaning:"离婚，分离"},
+  {id:250,freq:8,word:"properly",pos:"adv.",meaning:"适当地"},
+  {id:251,freq:8,word:"concentration",pos:"n.",meaning:"专注 集中"},
+  {id:252,freq:8,word:"guaranteed",pos:"adj.",meaning:"有保证的"},
+  {id:253,freq:8,word:"virtue",pos:"n.",meaning:"美德"},
+  {id:254,freq:8,word:"pursuit",pos:"n.",meaning:"追赶"},
+  {id:255,freq:8,word:"severe",pos:"adj.",meaning:"严重的"},
+  {id:256,freq:8,word:"rarely",pos:"adv.",meaning:"少见地"},
+  {id:257,freq:8,word:"leadership",pos:"n.",meaning:"领导力"},
+  {id:258,freq:8,word:"engineering",pos:"n.",meaning:"工程"},
+  {id:259,freq:8,word:"affordable",pos:"adj.",meaning:"支付得起的"},
+  {id:260,freq:8,word:"unfortunately",pos:"adv.",meaning:"不幸地"},
+  {id:261,freq:8,word:"effectively",pos:"adv.",meaning:"高效地"},
+  {id:262,freq:8,word:"typically",pos:"adv.",meaning:"典型地"},
+  {id:263,freq:8,word:"forgiveness",pos:"n.",meaning:"遗忘"},
+  {id:264,freq:8,word:"prospect",pos:"n.",meaning:"前景"},
+  {id:265,freq:8,word:"dramatic",pos:"adj.",meaning:"戏剧的，巨大的"},
+  {id:266,freq:8,word:"broadly",pos:"adv.",meaning:"宽广地"},
+  {id:267,freq:8,word:"satisfy",pos:"v.",meaning:"满意"},
+  {id:268,freq:7,word:"peculiar",pos:"adj.",meaning:"特殊的"},
+  {id:269,freq:7,word:"virtually",pos:"adv.",meaning:"事实上"},
+  {id:270,freq:7,word:"asset",pos:"n.",meaning:"资产"},
+  {id:271,freq:7,word:"hostility",pos:"n.",meaning:"敌意"},
+  {id:272,freq:7,word:"immune",pos:"adj.",meaning:"免疫的"},
+  {id:273,freq:7,word:"epidemic",pos:"n.",meaning:"传染病"},
+  {id:274,freq:7,word:"primarily",pos:"adv.",meaning:"首先"},
+  {id:275,freq:7,word:"initial",pos:"adj.",meaning:"最初的"},
+  {id:276,freq:7,word:"minister",pos:"n.",meaning:"部长"},
+  {id:277,freq:7,word:"temporary",pos:"adj.",meaning:"暂时的"},
+  {id:278,freq:7,word:"skepticism",pos:"n.",meaning:"怀疑论"},
+  {id:279,freq:7,word:"coherent",pos:"adj.",meaning:"连贯的"},
+  {id:280,freq:7,word:"regardless",pos:"adj.",meaning:"不管的"},
+  {id:281,freq:7,word:"substantial",pos:"adj.",meaning:"大量的"},
+  {id:282,freq:7,word:"structure",pos:"n.",meaning:"结构"},
+  {id:283,freq:7,word:"integrity",pos:"n.",meaning:"完整"},
+  {id:284,freq:7,word:"feedback",pos:"n.",meaning:"反馈"},
+  {id:285,freq:7,word:"moderate",pos:"adj.",meaning:"适度的"},
+  {id:286,freq:7,word:"consequently",pos:"adv.",meaning:"因此"},
+  {id:287,freq:7,word:"confident",pos:"adj.",meaning:"自信的"},
+  {id:288,freq:7,word:"candidate",pos:"n.",meaning:"候选人"},
+  {id:289,freq:7,word:"passionate",pos:"adj.",meaning:"热情的"},
+  {id:290,freq:7,word:"diverse",pos:"adj.",meaning:"不同的"},
+  {id:291,freq:7,word:"engage",pos:"v.",meaning:"参与"},
+  {id:292,freq:7,word:"philosophy",pos:"n.",meaning:"哲学"},
+  {id:293,freq:7,word:"subtle",pos:"adj.",meaning:"微妙的"},
+  {id:294,freq:7,word:"resistance",pos:"n.",meaning:"阻力"},
+  {id:295,freq:7,word:"unconscious",pos:"adj.",meaning:"无意识的"},
+  {id:296,freq:7,word:"imitate",pos:"v.",meaning:"模仿"},
+  {id:297,freq:7,word:"permission",pos:"n.",meaning:"允许"},
+  {id:298,freq:7,word:"thriving",pos:"v.",meaning:"兴旺发达"},
+  {id:299,freq:7,word:"appreciation",pos:"n.",meaning:"欣赏"},
+  {id:300,freq:7,word:"trait",pos:"n.",meaning:"特性"},
+  {id:301,freq:7,word:"dedicated",pos:"adj.",meaning:"投入的"},
+  {id:302,freq:7,word:"barely",pos:"adv.",meaning:"仅仅"},
+  {id:303,freq:7,word:"familiar",pos:"adj.",meaning:"熟悉的"},
+  {id:304,freq:7,word:"guilty",pos:"adj.",meaning:"有罪的"},
+  {id:305,freq:7,word:"democracy",pos:"n.",meaning:"民主"},
+  {id:306,freq:7,word:"optimism",pos:"n.",meaning:"乐观"},
+  {id:307,freq:7,word:"astronomy",pos:"n.",meaning:"天文学"},
+  {id:308,freq:7,word:"identity",pos:"n.",meaning:"身份，一致"},
+  {id:309,freq:7,word:"vulnerable",pos:"adj.",meaning:"脆弱的"},
+  {id:310,freq:7,word:"plastic",pos:"n.",meaning:"塑料"},
+  {id:311,freq:7,word:"urgent",pos:"adj.",meaning:"紧急的"},
+  {id:312,freq:7,word:"interaction",pos:"n.",meaning:"互动"},
+  {id:313,freq:7,word:"financially",pos:"adv.",meaning:"财政地"},
+  {id:314,freq:7,word:"ambiguous",pos:"adj.",meaning:"模棱两可的"},
+  {id:315,freq:7,word:"cautious",pos:"adj.",meaning:"小心的"},
+  {id:316,freq:7,word:"manner",pos:"n.",meaning:"方法"},
+  {id:317,freq:7,word:"strict",pos:"adj.",meaning:"严格的"},
+  {id:318,freq:7,word:"imagination",pos:"n.",meaning:"想象"},
+  {id:319,freq:7,word:"assume",pos:"v.",meaning:"假设，认为"},
+  {id:320,freq:7,word:"publish",pos:"v.",meaning:"出版发行"},
+  {id:321,freq:7,word:"worthwhile",pos:"adj.",meaning:"值得的"},
+  {id:322,freq:7,word:"deliver",pos:"v.",meaning:"提供，运输"},
+  {id:323,freq:7,word:"uncertain",pos:"adj.",meaning:"不确定的"},
+  {id:324,freq:6,word:"parallel",pos:"adj.",meaning:"平行的"},
+  {id:325,freq:6,word:"circulation",pos:"n.",meaning:"流通，传播"},
+  {id:326,freq:6,word:"esteem",pos:"n.",meaning:"尊重"},
+  {id:327,freq:6,word:"stem from",pos:"v.",meaning:"起源于"},
+  {id:328,freq:6,word:"reluctant",pos:"adj.",meaning:"不情愿的"},
+  {id:329,freq:6,word:"distinctly",pos:"adv.",meaning:"明显地"},
+  {id:330,freq:6,word:"preserve",pos:"v.",meaning:"保存；保护"},
+  {id:331,freq:6,word:"fitness",pos:"n.",meaning:"健康，适当"},
+  {id:332,freq:6,word:"indifferent",pos:"adj.",meaning:"冷淡的"},
+  {id:333,freq:6,word:"reject",pos:"v.",meaning:"拒绝"},
+  {id:334,freq:6,word:"folk",pos:"n.",meaning:"民族，人民"},
+  {id:335,freq:6,word:"misery",pos:"n.",meaning:"痛苦"},
+  {id:336,freq:6,word:"acquisition",pos:"n.",meaning:"获得物"},
+  {id:337,freq:6,word:"academics",pos:"n.",meaning:"学术，学者"},
+  {id:338,freq:6,word:"inquiry",pos:"n.",meaning:"调查询问"},
+  {id:339,freq:6,word:"contribution",pos:"n.",meaning:"贡献"},
+  {id:340,freq:6,word:"judgment",pos:"n.",meaning:"判断"},
+  {id:341,freq:6,word:"ethic",pos:"n.",meaning:"伦理"},
+  {id:342,freq:6,word:"bound",pos:"adj.",meaning:"注定的"},
+  {id:343,freq:6,word:"profound",pos:"adj.",meaning:"深厚的"},
+  {id:344,freq:6,word:"leakage",pos:"n.",meaning:"泄漏"},
+  {id:345,freq:6,word:"regulatory",pos:"adj.",meaning:"管理的"},
+  {id:346,freq:6,word:"complicated",pos:"adj.",meaning:"难懂复杂的"},
+  {id:347,freq:6,word:"exist",pos:"v.",meaning:"存在；生存"},
+  {id:348,freq:6,word:"Nobel",pos:"n.",meaning:"诺贝尔"},
+  {id:349,freq:6,word:"recognition",pos:"n.",meaning:"识别"},
+  {id:350,freq:6,word:"quote",pos:"v.",meaning:"引述"},
+  {id:351,freq:6,word:"secure",pos:"adj.",meaning:"安全的"},
+  {id:352,freq:6,word:"billion",pos:"n.",meaning:"十亿；大量"},
+  {id:353,freq:6,word:"reverse",pos:"v./adj.",meaning:"颠倒；撤销 / 相反的"},
+  {id:354,freq:6,word:"chemical",pos:"adj.",meaning:"化学的"},
+  {id:355,freq:6,word:"combat",pos:"n.",meaning:"战斗"},
+  {id:356,freq:6,word:"default",pos:"n./v.",meaning:"默认，违约"},
+  {id:357,freq:6,word:"count",pos:"v.",meaning:"数数；重要"},
+  {id:358,freq:6,word:"launch",pos:"v.",meaning:"发射"},
+  {id:359,freq:6,word:"solution",pos:"n.",meaning:"解决方案"},
+  {id:360,freq:6,word:"remarkable",pos:"adj.",meaning:"卓越的；显著的"},
+  {id:361,freq:6,word:"complain",pos:"v.",meaning:"投诉；抱怨"},
+  {id:362,freq:6,word:"innovative",pos:"adj.",meaning:"革新的"},
+  {id:363,freq:6,word:"shelter",pos:"n.",meaning:"庇护"},
+  {id:364,freq:6,word:"material",pos:"adj./n.",meaning:"物质的 / 材料；原料"},
+  {id:365,freq:6,word:"connection",pos:"n.",meaning:"连接"},
+  {id:366,freq:6,word:"outlook",pos:"n.",meaning:"展望；态度"},
+  {id:367,freq:6,word:"scheme",pos:"n.",meaning:"计划；组合"},
+  {id:368,freq:6,word:"allowance",pos:"n.",meaning:"津贴，零用钱"},
+  {id:369,freq:6,word:"engagement",pos:"n.",meaning:"婚约；约会"},
+  {id:370,freq:6,word:"attend",pos:"v.",meaning:"出席"},
+  {id:371,freq:6,word:"employ",pos:"v.",meaning:"雇佣"},
+  {id:372,freq:6,word:"investigation",pos:"n.",meaning:"调查"},
+  {id:375,freq:6,word:"sharing",pos:"adj.",meaning:"共同的"},
+  {id:376,freq:6,word:"adapt",pos:"v.",meaning:"使适应"},
+  {id:374,freq:6,word:"yield",pos:"v./n.",meaning:"产出 / 产量"},
+  {id:377,freq:6,word:"glory",pos:"n.",meaning:"光荣"},
+  {id:378,freq:6,word:"comprehensive",pos:"adj.",meaning:"综合的"},
+  {id:379,freq:6,word:"additional",pos:"adj.",meaning:"额外的"},
+  {id:380,freq:6,word:"perceive",pos:"v.",meaning:"察觉，感觉"},
+  {id:381,freq:6,word:"continent",pos:"n.",meaning:"大陆"},
+  {id:382,freq:6,word:"prejudice",pos:"n.",meaning:"偏见"},
+  {id:383,freq:6,word:"isolated",pos:"adj.",meaning:"被孤立的"},
+  {id:384,freq:6,word:"inherent",pos:"adj.",meaning:"固有的"},
+  {id:385,freq:6,word:"leisure",pos:"n.",meaning:"闲暇"},
+  {id:386,freq:6,word:"corruption",pos:"n.",meaning:"贪污"},
+  {id:387,freq:6,word:"involving",pos:"v.",meaning:"涉及"},
+  {id:388,freq:6,word:"equip",pos:"v.",meaning:"装备"},
+  {id:389,freq:5,word:"scope",pos:"n.",meaning:"范围，机会，能力"},
+  {id:390,freq:5,word:"deem",pos:"v.",meaning:"认为"},
+  {id:391,freq:5,word:"fulfill",pos:"v.",meaning:"履行"},
+  {id:392,freq:5,word:"patented",pos:"adj.",meaning:"专利的"},
+  {id:393,freq:5,word:"initially",pos:"adv.",meaning:"最初地"},
+  {id:394,freq:5,word:"transaction",pos:"n.",meaning:"交易"},
+  {id:395,freq:5,word:"protection",pos:"n.",meaning:"保护"},
+  {id:396,freq:5,word:"arouse",pos:"v.",meaning:"唤醒"},
+  {id:397,freq:5,word:"analyze",pos:"v.",meaning:"分析"},
+  {id:398,freq:5,word:"evaluation",pos:"n.",meaning:"评价"},
+  {id:399,freq:5,word:"evade",pos:"v.",meaning:"逃避"},
+  {id:400,freq:5,word:"gradual",pos:"adj.",meaning:"逐渐的"},
+  {id:401,freq:5,word:"alternative",pos:"adj./n.",meaning:"替代的 / 替代品"},
+  {id:402,freq:5,word:"grocery",pos:"n.",meaning:"食品杂货店"},
+  {id:403,freq:5,word:"dominate",pos:"v.",meaning:"控制，支配"},
+  {id:404,freq:5,word:"unfamiliar",pos:"adj.",meaning:"不熟悉的"},
+  {id:405,freq:5,word:"chain",pos:"n.",meaning:"链"},
+  {id:406,freq:5,word:"straight",pos:"adj.",meaning:"直的；连续的"},
+  {id:407,freq:5,word:"jump",pos:"v.",meaning:"跳跃"},
+  {id:408,freq:5,word:"recruit",pos:"v.",meaning:"征募"},
+  {id:409,freq:5,word:"sustain",pos:"v.",meaning:"维持"},
+  {id:410,freq:5,word:"appointment",pos:"n.",meaning:"任命，约定"},
+  {id:411,freq:5,word:"description",pos:"n.",meaning:"描述"},
+  {id:412,freq:5,word:"composition",pos:"n.",meaning:"构成，作文"},
+  {id:413,freq:5,word:"audience",pos:"n.",meaning:"观众"},
+  {id:414,freq:5,word:"vague",pos:"adj.",meaning:"模糊的"},
+  {id:415,freq:5,word:"pursue",pos:"v.",meaning:"追求，执行"},
+  {id:416,freq:5,word:"nervous",pos:"adj.",meaning:"神经的"},
+  {id:417,freq:5,word:"advertisement",pos:"n.",meaning:"广告"},
+  {id:418,freq:5,word:"visible",pos:"adj.",meaning:"明显的"},
+  {id:419,freq:5,word:"brand",pos:"n.",meaning:"品牌"},
+  {id:420,freq:5,word:"eager",pos:"adj.",meaning:"渴望的，急切的"},
+  {id:421,freq:5,word:"conflict",pos:"n.",meaning:"冲突"},
+  {id:422,freq:5,word:"delight",pos:"n.",meaning:"高兴"},
+  {id:423,freq:5,word:"enthusiasm",pos:"n.",meaning:"热心"},
+  {id:424,freq:5,word:"undergraduate",pos:"n.",meaning:"本科生"},
+  {id:425,freq:5,word:"conclude",pos:"v.",meaning:"总结"},
+  {id:426,freq:5,word:"inner",pos:"adj.",meaning:"内部的"},
+  {id:427,freq:5,word:"limitation",pos:"n.",meaning:"限制"},
+  {id:428,freq:5,word:"legitimacy",pos:"n.",meaning:"合法"},
+  {id:429,freq:5,word:"convincing",pos:"adj.",meaning:"令人信服的"},
+  {id:430,freq:5,word:"prone",pos:"adj.",meaning:"有…倾向的"},
+  {id:431,freq:5,word:"upset",pos:"v.",meaning:"使心烦"},
+  {id:432,freq:5,word:"license",pos:"n.",meaning:"执照，许可证"},
+  {id:433,freq:5,word:"credit",pos:"n.",meaning:"信用"},
+  {id:434,freq:5,word:"norm",pos:"n.",meaning:"标准"},
+  {id:435,freq:5,word:"passive",pos:"adj.",meaning:"被动的，消极的"},
+  {id:436,freq:5,word:"cognitive",pos:"adj.",meaning:"认知的"},
+  {id:437,freq:5,word:"identify",pos:"v.",meaning:"确认"},
+  {id:438,freq:5,word:"bias",pos:"n.",meaning:"偏见"},
+  {id:439,freq:5,word:"campus",pos:"n.",meaning:"校园；大学"},
+  {id:440,freq:5,word:"defendant",pos:"adj.",meaning:"防御防守的"},
+  {id:441,freq:5,word:"admission",pos:"n.",meaning:"承认"},
+  {id:442,freq:5,word:"anticipate",pos:"v.",meaning:"预料"},
+  {id:443,freq:5,word:"strain",pos:"n.",meaning:"张力；拉紧"},
+  {id:444,freq:5,word:"dilemma",pos:"n.",meaning:"困境"},
+  {id:445,freq:5,word:"craft",pos:"n.",meaning:"工艺，技能"},
+  {id:446,freq:5,word:"vital",pos:"adj.",meaning:"至关重要的"},
+  {id:447,freq:5,word:"complaint",pos:"n.",meaning:"抱怨"},
+  {id:448,freq:5,word:"fossil",pos:"n.",meaning:"化石，老古董"},
+  {id:449,freq:5,word:"provision",pos:"n.",meaning:"规定，供给"},
+  {id:450,freq:5,word:"explicitly",pos:"adv.",meaning:"明确地"},
+  {id:451,freq:5,word:"priority",pos:"n.",meaning:"优先"},
+  {id:452,freq:5,word:"implicit",pos:"adj.",meaning:"含蓄的"},
+  {id:453,freq:5,word:"innocent",pos:"adj.",meaning:"无辜的"},
+  {id:454,freq:5,word:"detailed",pos:"adj.",meaning:"详细的"},
+  {id:455,freq:5,word:"well-being",pos:"n.",meaning:"幸福"},
+  {id:456,freq:5,word:"association",pos:"n.",meaning:"协会"},
+  {id:457,freq:5,word:"minimal",pos:"adj.",meaning:"最低的"},
+  {id:458,freq:5,word:"instinct",pos:"n.",meaning:"本能，直觉"},
+  {id:459,freq:5,word:"district",pos:"n.",meaning:"地区"},
+  {id:460,freq:5,word:"opponent",pos:"n.",meaning:"对手"},
+  {id:461,freq:5,word:"tuition",pos:"n.",meaning:"学费；讲授"},
+  {id:462,freq:5,word:"promotion",pos:"n.",meaning:"提升"},
+  {id:463,freq:5,word:"literacy",pos:"n.",meaning:"读写能力"},
+  {id:464,freq:5,word:"literally",pos:"adv.",meaning:"照字面地，真正地"},
+  {id:465,freq:5,word:"volume",pos:"n.",meaning:"量；体积"},
+  {id:466,freq:5,word:"unreliable",pos:"adj.",meaning:"不可靠的"},
+  {id:467,freq:5,word:"consistently",pos:"adv.",meaning:"一贯地"},
+  {id:468,freq:5,word:"household",pos:"adj.",meaning:"家庭的"},
+  {id:469,freq:5,word:"narrow",pos:"adj./v.",meaning:"狭窄的 / 使变窄"},
+  {id:470,freq:5,word:"absorb",pos:"v.",meaning:"吸收"},
+  {id:471,freq:5,word:"compensate",pos:"v.",meaning:"补偿"},
+  {id:472,freq:5,word:"appreciate",pos:"v.",meaning:"欣赏"},
+  {id:473,freq:5,word:"immigrant",pos:"adj.",meaning:"移民的"},
+  {id:474,freq:5,word:"inclined",pos:"adj.",meaning:"有…倾向"},
+  {id:475,freq:5,word:"committee",pos:"n.",meaning:"委员会"},
+  {id:476,freq:5,word:"negotiate",pos:"v.",meaning:"谈判"},
+  {id:477,freq:5,word:"justify",pos:"v.",meaning:"证明合法"},
+  {id:478,freq:5,word:"fuel",pos:"n./v.",meaning:"燃料 / 推动"},
+  {id:479,freq:5,word:"commodity",pos:"n.",meaning:"商品"},
+  {id:480,freq:5,word:"shortage",pos:"n.",meaning:"缺乏"},
+  {id:481,freq:5,word:"strategic",pos:"adj.",meaning:"策略的"},
+  {id:482,freq:5,word:"reorganize",pos:"v.",meaning:"重新安排"},
+  {id:483,freq:5,word:"nonsense",pos:"n.",meaning:"胡言乱语"},
+  {id:484,freq:5,word:"independently",pos:"adv.",meaning:"独立地"},
+  {id:485,freq:5,word:"dramatically",pos:"adv.",meaning:"显著地"},
+  {id:486,freq:5,word:"dispute",pos:"n.",meaning:"争议"},
+  {id:487,freq:5,word:"deprive",pos:"v.",meaning:"剥夺"},
+  {id:488,freq:5,word:"demonstrate",pos:"v.",meaning:"展示"},
+  {id:489,freq:5,word:"concrete",pos:"adj./n.",meaning:"具体的 / 混凝土"},
+  {id:490,freq:5,word:"ordinary",pos:"adj.",meaning:"普通的"},
+  {id:491,freq:4,word:"sponsor",pos:"v.",meaning:"赞助；发起"},
+  {id:492,freq:4,word:"flawed",pos:"adj.",meaning:"有缺陷的"},
+  {id:493,freq:4,word:"exert",pos:"v.",meaning:"运用"},
+  {id:494,freq:4,word:"insist",pos:"v.",meaning:"坚持，强调"},
+  {id:495,freq:4,word:"supplement",pos:"v.",meaning:"增补，补充"},
+  {id:496,freq:4,word:"aging",pos:"n.",meaning:"老化"},
+  {id:497,freq:4,word:"extension",pos:"n.",meaning:"拓展"},
+  {id:498,freq:4,word:"route",pos:"n.",meaning:"路线"},
+  {id:499,freq:4,word:"correspond",pos:"v.",meaning:"符合，一致"},
+  {id:500,freq:4,word:"switch",pos:"n./v.",meaning:"开关 / 转换"}
+];
+let currentFilter='all',currentView='list',currentSort='freq',searchQuery='';
+let favorites=JSON.parse(localStorage.getItem('wordFavs')||'[]');
+let mastered=JSON.parse(localStorage.getItem('wordMastered')||'[]');
+let studyIndex=0,studyList=[];
+function speakWord(text,btn){
+  if(!('speechSynthesis' in window)){alert('您的浏览器不支持语音合成功能，请使用Chrome、Edge或Safari浏览器');return;}
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=0.85;u.pitch=1;
+  const voices=window.speechSynthesis.getVoices();
+  const ev=voices.find(v=>v.lang.startsWith('en')&&(v.name.includes('Google')||v.name.includes('Microsoft')||v.name.includes('Samantha')));
+  if(ev)u.voice=ev;
+  if(btn){btn.classList.add('playing');u.onend=()=>btn.classList.remove('playing');u.onerror=()=>btn.classList.remove('playing');}
+  window.speechSynthesis.speak(u);
+}
+if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}
+function getFreqLevel(f){if(f>=20)return'high';if(f>=10)return'mid';return'low';}
+function getFilteredWords(){
+  let list=[...words];
+  if(searchQuery){const q=searchQuery.toLowerCase();list=list.filter(w=>w.word.toLowerCase().includes(q)||w.meaning.includes(searchQuery)||w.pos.includes(searchQuery));}
+  if(currentFilter==='high')list=list.filter(w=>w.freq>=20);
+  else if(currentFilter==='mid')list=list.filter(w=>w.freq>=10&&w.freq<20);
+  else if(currentFilter==='low')list=list.filter(w=>w.freq<10);
+  else if(currentFilter==='fav')list=list.filter(w=>favorites.includes(w.id));
+  else if(currentFilter==='unmastered')list=list.filter(w=>!mastered.includes(w.id));
+  if(currentSort==='freq')list.sort((a,b)=>b.freq-a.freq||a.id-b.id);
+  else if(currentSort==='alpha')list.sort((a,b)=>a.word.localeCompare(b.word));
+  return list;
+}
+function renderWords(){
+  const list=getFilteredWords();
+  const c=document.getElementById('wordList');
+  c.className='word-list '+(currentView==='card'?'card-view':'');
+  if(list.length===0){c.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>没有找到匹配的单词</p></div>';}
+  else{c.innerHTML=list.map(w=>{
+    const isFav=favorites.includes(w.id),isMastered=mastered.includes(w.id),level=getFreqLevel(w.freq);
+    return `<div class="word-card ${level}-freq ${isMastered?'mastered':''}" data-id="${w.id}">
+      <div class="word-num">${w.id}</div><div class="word-freq">${w.freq}次</div>
+      <div class="word-main" onclick="speakWord('${w.word.replace(/'/g,"\\'")}',this.closest('.word-card').querySelector('.speak-btn'))">
+        <div class="word-text">${w.word}</div><div class="word-meaning">${w.pos} ${w.meaning}</div></div>
+      <div class="word-actions">
+        <button class="action-btn speak-btn" onclick="speakWord('${w.word.replace(/'/g,"\\'")}',this)" title="发音">🔊</button>
+        <button class="action-btn fav-btn ${isFav?'active':''}" onclick="toggleFav(${w.id})" title="收藏">${isFav?'⭐':'☆'}</button>
+        <button class="action-btn master-btn ${isMastered?'active':''}" onclick="toggleMaster(${w.id})" title="已掌握">${isMastered?'✅':'⬜'}</button>
+      </div></div>`;
+  }).join('');}
+  document.getElementById('totalCount').textContent=words.length;
+  document.getElementById('favCount').textContent=favorites.length;
+  document.getElementById('masteredCount').textContent=mastered.length;
+  document.getElementById('shownCount').textContent=list.length;
+}
+function toggleFav(id){const i=favorites.indexOf(id);if(i>-1)favorites.splice(i,1);else favorites.push(id);localStorage.setItem('wordFavs',JSON.stringify(favorites));renderWords();}
+function toggleMaster(id){const i=mastered.indexOf(id);if(i>-1)mastered.splice(i,1);else mastered.push(id);localStorage.setItem('wordMastered',JSON.stringify(mastered));renderWords();}
+document.getElementById('searchInput').addEventListener('input',e=>{searchQuery=e.target.value.trim();renderWords();});
+document.querySelectorAll('.filter-btn[data-filter]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn[data-filter]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentFilter=btn.dataset.filter;renderWords();});});
+document.querySelectorAll('.view-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentView=btn.dataset.view;renderWords();});});
+document.getElementById('sortFreq').addEventListener('click',()=>{currentSort='freq';document.getElementById('sortFreq').style.borderColor='#e74c3c';document.getElementById('sortFreq').style.color='#e74c3c';document.getElementById('sortAlpha').style.borderColor='#e0e6ed';document.getElementById('sortAlpha').style.color='#5a6c7d';renderWords();});
+document.getElementById('sortAlpha').addEventListener('click',()=>{currentSort='alpha';document.getElementById('sortAlpha').style.borderColor='#e74c3c';document.getElementById('sortAlpha').style.color='#e74c3c';document.getElementById('sortFreq').style.borderColor='#e0e6ed';document.getElementById('sortFreq').style.color='#5a6c7d';renderWords();});
+document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('确定要重置所有学习进度吗？')){favorites=[];mastered=[];localStorage.removeItem('wordFavs');localStorage.removeItem('wordMastered');renderWords();}});
+function startStudy(){studyList=getFilteredWords();if(studyList.length===0){alert('当前筛选条件下没有单词可供学习');return;}studyIndex=0;document.getElementById('studyOverlay').classList.add('show');showStudyWord();}
+function showStudyWord(){const w=studyList[studyIndex];document.getElementById('studyWord').textContent=w.word;document.getElementById('studyPhonetic').textContent=w.pos;document.getElementById('studyMeaning').textContent=w.meaning;document.getElementById('studyMeaning').classList.remove('show');document.getElementById('studyProgress').textContent=`${studyIndex+1} / ${studyList.length}`;speakWord(w.word);}
+function toggleMeaning(){document.getElementById('studyMeaning').classList.toggle('show');}
+function studySpeak(){speakWord(document.getElementById('studyWord').textContent);}
+function studyNext(){if(studyIndex<studyList.length-1){studyIndex++;showStudyWord();}else{alert('🎉 恭喜！你已经学完了当前列表的所有单词！');}}
+function studyPrev(){if(studyIndex>0){studyIndex--;showStudyWord();}}
+function studyMaster(){const w=studyList[studyIndex];if(!mastered.includes(w.id)){mastered.push(w.id);localStorage.setItem('wordMastered',JSON.stringify(mastered));}studyNext();}
+function closeStudy(){document.getElementById('studyOverlay').classList.remove('show');window.speechSynthesis.cancel();renderWords();}
+document.getElementById('studyModeBtn').addEventListener('click',startStudy);
+document.addEventListener('keydown',e=>{if(document.getElementById('studyOverlay').classList.contains('show')){if(e.key==='ArrowRight')studyNext();else if(e.key==='ArrowLeft')studyPrev();else if(e.key===' '){e.preventDefault();studySpeak();}else if(e.key==='Escape')closeStudy();else if(e.key==='Enter')toggleMeaning();}});
+renderWords();
+</script>
+</body>
+</html>
