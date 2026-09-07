@@ -860,8 +860,33 @@ let currentFilter='all',currentView='list',currentSort='freq',searchQuery='';
 let favorites=JSON.parse(localStorage.getItem('wordFavs')||'[]');
 let mastered=JSON.parse(localStorage.getItem('wordMastered')||'[]');
 let studyIndex=0,studyList=[];
+let audioPlayer=null;
+let currentPlayingBtn=null;
 function speakWord(text,btn){
-  if(!('speechSynthesis' in window)){alert('您的浏览器不支持语音合成功能，请使用Chrome、Edge或Safari浏览器');return;}
+  if(audioPlayer){audioPlayer.pause();audioPlayer=null;}
+  if(currentPlayingBtn){currentPlayingBtn.classList.remove('playing');currentPlayingBtn=null;}
+  if('speechSynthesis' in window){window.speechSynthesis.cancel();}
+  if(btn){btn.classList.add('playing');currentPlayingBtn=btn;}
+  const word=encodeURIComponent(text.trim());
+  const audioUrl='https://dict.youdao.com/dictvoice?audio='+word+'&type=2';
+  try{
+    audioPlayer=new Audio(audioUrl);
+    audioPlayer.onended=()=>{if(btn)btn.classList.remove('playing');if(currentPlayingBtn===btn)currentPlayingBtn=null;};
+    audioPlayer.onerror=()=>{
+      if(btn)btn.classList.remove('playing');
+      fallbackSpeak(text,btn);
+    };
+    audioPlayer.play().catch(()=>{
+      if(btn)btn.classList.remove('playing');
+      fallbackSpeak(text,btn);
+    });
+  }catch(e){
+    if(btn)btn.classList.remove('playing');
+    fallbackSpeak(text,btn);
+  }
+}
+function fallbackSpeak(text,btn){
+  if(!('speechSynthesis' in window)){return;}
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang='en-US';u.rate=0.85;u.pitch=1;
@@ -876,19 +901,19 @@ function getFreqLevel(f){if(f>=20)return'high';if(f>=10)return'mid';return'low';
 function getFilteredWords(){
   let list=[...words];
   if(searchQuery){const q=searchQuery.toLowerCase();list=list.filter(w=>w.word.toLowerCase().includes(q)||w.meaning.includes(searchQuery)||w.pos.includes(searchQuery));}
-  if(currentFilter==='high')list=list.filter(w=>w.freq>=20);
-  else if(currentFilter==='mid')list=list.filter(w=>w.freq>=10&&w.freq<20);
-  else if(currentFilter==='low')list=list.filter(w=>w.freq<10);
-  else if(currentFilter==='fav')list=list.filter(w=>favorites.includes(w.id));
-  else if(currentFilter==='unmastered')list=list.filter(w=>!mastered.includes(w.id));
-  if(currentSort==='freq')list.sort((a,b)=>b.freq-a.freq||a.id-b.id);
-  else if(currentSort==='alpha')list.sort((a,b)=>a.word.localeCompare(b.word));
+  if(currentFilter=='high')list=list.filter(w=>w.freq>=20);
+  else if(currentFilter=='mid')list=list.filter(w=>w.freq>=10&&w.freq<20);
+  else if(currentFilter=='low')list=list.filter(w=>w.freq<10);
+  else if(currentFilter=='fav')list=list.filter(w=>favorites.includes(w.id));
+  else if(currentFilter=='unmastered')list=list.filter(w=>!mastered.includes(w.id));
+  if(currentSort=='freq')list.sort((a,b)=>b.freq-a.freq||a.id-b.id);
+  else if(currentSort=='alpha')list.sort((a,b)=>a.word.localeCompare(b.word));
   return list;
 }
 function renderWords(){
   const list=getFilteredWords();
   const c=document.getElementById('wordList');
-  c.className='word-list '+(currentView==='card'?'card-view':'');
+  c.className='word-list '+(currentView=='card'?'card-view':'');
   if(list.length===0){c.innerHTML='<div class="empty-state"><div class="icon">📭</div><p>没有找到匹配的单词</p></div>';}
   else{c.innerHTML=list.map(w=>{
     const isFav=favorites.includes(w.id),isMastered=mastered.includes(w.id),level=getFreqLevel(w.freq);
